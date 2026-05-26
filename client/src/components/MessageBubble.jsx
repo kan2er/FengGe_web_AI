@@ -6,7 +6,7 @@ export default function MessageBubble({ message, onPlay }) {
       {!isUser && <div className="avatar">峰</div>}
       <div className="bubble-content">
         <div className="bubble-text">{message.content}</div>
-        {!isUser && message.content && (
+        {!isUser && message.content && message.audioUrl !== null && (
           <button
             className="play-btn"
             onClick={() => message.audioUrl && onPlay(message.audioUrl)}

@@ -127,7 +127,7 @@ export function useChat(audioEnabled, playAudio) {
     }
   }, [playAudio]);
 
-  const fetchTTS = useCallback(async (text, targetMsgId) => {
+  const fetchTTS = async (text, targetMsgId) => {
     try {
       const ttsRes = await fetch('/api/tts', {
         method: 'POST',
@@ -135,26 +135,44 @@ export function useChat(audioEnabled, playAudio) {
         body: JSON.stringify({ text }),
       });
 
-      if (ttsRes.ok) {
-        const blob = await ttsRes.blob();
-        const audioUrl = URL.createObjectURL(blob);
-
+      if (!ttsRes.ok) {
+        const errText = await ttsRes.text();
+        console.error('TTS request failed:', ttsRes.status, errText);
         setMessages((prev) => {
           const updated = [...prev];
           const idx = updated.findIndex((m) => m.id === targetMsgId);
           if (idx === -1) return prev;
-          updated[idx] = { ...updated[idx], audioUrl };
+          updated[idx] = { ...updated[idx], audioUrl: null };
           return updated;
         });
-
-        if (audioEnabledRef.current) {
-          playAudio(audioUrl);
-        }
+        return;
       }
-    } catch {
-      // TTS failed silently
+
+      const blob = await ttsRes.blob();
+      const audioUrl = URL.createObjectURL(blob);
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        const idx = updated.findIndex((m) => m.id === targetMsgId);
+        if (idx === -1) return prev;
+        updated[idx] = { ...updated[idx], audioUrl };
+        return updated;
+      });
+
+      if (audioEnabledRef.current) {
+        playAudio(audioUrl);
+      }
+    } catch (err) {
+      console.error('TTS fetch error:', err);
+      setMessages((prev) => {
+        const updated = [...prev];
+        const idx = updated.findIndex((m) => m.id === targetMsgId);
+        if (idx === -1) return prev;
+        updated[idx] = { ...updated[idx], audioUrl: null };
+        return updated;
+      });
     }
-  }, [playAudio]);
+  };
 
   const clear = useCallback(() => {
     setMessages([]);
