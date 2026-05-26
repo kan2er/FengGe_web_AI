@@ -1,12 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { loadMessages, saveMessages, clearMessages } from '../utils/storage';
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
 export function useChat(audioEnabled, playAudio) {
-  const [messages, setMessages] = useState(loadMessages);
+  const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef(null);
   const audioEnabledRef = useRef(audioEnabled);
@@ -19,11 +18,6 @@ export function useChat(audioEnabled, playAudio) {
     return () => {
       abortRef.current?.abort();
     };
-  }, []);
-
-  const persist = useCallback((msgs) => {
-    setMessages(msgs);
-    saveMessages(msgs);
   }, []);
 
   const sendMessage = useCallback(async (text) => {
@@ -44,7 +38,7 @@ export function useChat(audioEnabled, playAudio) {
 
     const currentMessages = messagesRef.current;
     const newMessages = [...currentMessages, userMsg, assistantMsg];
-    persist(newMessages);
+    setMessages(newMessages);
     setIsStreaming(true);
 
     const controller = new AbortController();
@@ -110,38 +104,13 @@ export function useChat(audioEnabled, playAudio) {
       const finalMessages = newMessages.map((m) =>
         m.id === assistantMsgId ? { ...m, content: fullContent, timestamp: Date.now() } : m
       );
-      persist(finalMessages);
-
-      if (fullContent.trim()) {
-        try {
-          const ttsRes = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: fullContent }),
-          });
-
-          if (ttsRes.ok) {
-            const blob = await ttsRes.blob();
-            const audioUrl = URL.createObjectURL(blob);
-
-            setMessages((prev) => {
-              const updated = [...prev];
-              const idx = updated.findIndex((m) => m.id === assistantMsgId);
-              if (idx === -1) return prev;
-              updated[idx] = { ...updated[idx], audioUrl };
-              return updated;
-            });
-
-            if (audioEnabledRef.current) {
-              playAudio(audioUrl);
-            }
-          }
-        } catch {
-          // TTS failed silently
-        }
-      }
-
+      setMessages(finalMessages);
       setIsStreaming(false);
+
+      // TTS runs in background, doesn't block the UI
+      if (fullContent.trim()) {
+        fetchTTS(fullContent, assistantMsgId);
+      }
     } catch (err) {
       if (err.name === 'AbortError') {
         setIsStreaming(false);
@@ -156,10 +125,38 @@ export function useChat(audioEnabled, playAudio) {
       });
       setIsStreaming(false);
     }
-  }, [persist, playAudio]);
+  }, [playAudio]);
+
+  const fetchTTS = useCallback(async (text, targetMsgId) => {
+    try {
+      const ttsRes = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (ttsRes.ok) {
+        const blob = await ttsRes.blob();
+        const audioUrl = URL.createObjectURL(blob);
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          const idx = updated.findIndex((m) => m.id === targetMsgId);
+          if (idx === -1) return prev;
+          updated[idx] = { ...updated[idx], audioUrl };
+          return updated;
+        });
+
+        if (audioEnabledRef.current) {
+          playAudio(audioUrl);
+        }
+      }
+    } catch {
+      // TTS failed silently
+    }
+  }, [playAudio]);
 
   const clear = useCallback(() => {
-    clearMessages();
     setMessages([]);
   }, []);
 
