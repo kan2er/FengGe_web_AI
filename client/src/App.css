@@ -46,30 +46,52 @@ body {
   color: #8e8e8e;
 }
 
-.toggle-btn {
-  padding: 3px 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 10px;
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  background: #ffffff;
-  color: #8e8e8e;
-  transition: all 0.15s;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #d9d9d9;
+  border-radius: 10px;
+  transition: 0.2s;
 }
 
-.toggle-btn.on {
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.switch input:checked + .slider {
   background: #10a37f;
-  color: #fff;
-  border-color: #10a37f;
 }
 
-.toggle-btn.off {
-  background: #ffffff;
-  color: #8e8e8e;
+.switch input:checked + .slider::before {
+  transform: translateX(16px);
 }
 
-.toggle-btn:focus-visible {
+.switch input:focus-visible + .slider {
   outline: 2px solid #10a37f;
   outline-offset: 2px;
 }
