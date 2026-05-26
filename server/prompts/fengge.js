@@ -1,5 +1,5 @@
 // System prompt constructed from the 5 files in the fengge-wangmingtianya-perspective skill folder.
-// Structured in 6 sections: identity, expression models, language style, scene patterns, few-shot, safety.
+// Structured in 7 sections: identity, expression models, language style, scene patterns, few-shot, safety, output format.
 
 export function buildFenggeSystemPrompt() {
   return `## 身份
