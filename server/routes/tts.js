@@ -1,3 +1,5 @@
+import { ProxyAgent } from 'undici';
+
 export default async function ttsRoute(req, res) {
   const { text } = req.body;
 
@@ -21,20 +23,25 @@ export default async function ttsRoute(req, res) {
     return;
   }
 
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || '';
+  const fetchOptions = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({ text, voice_id: VOICE_ID }),
+  };
+
+  if (proxyUrl) {
+    console.log('[TTS] Using proxy:', proxyUrl);
+    fetchOptions.dispatcher = new ProxyAgent(proxyUrl);
+  }
+
   console.log('[TTS] Requesting, text length:', text.length, 'voice:', VOICE_ID);
 
   try {
-    const response = await fetch('https://api.fish.audio/v1/tts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        text,
-        voice_id: VOICE_ID,
-      }),
-    });
+    const response = await fetch('https://api.fish.audio/v1/tts', fetchOptions);
 
     if (!response.ok) {
       const err = await response.text();
@@ -42,9 +49,6 @@ export default async function ttsRoute(req, res) {
       res.status(response.status).json({ error: `Fish Audio error: ${err}` });
       return;
     }
-
-    const contentType = response.headers.get('content-type');
-    console.log('[TTS] Response content-type:', contentType);
 
     const arrayBuffer = await response.arrayBuffer();
     console.log('[TTS] Success, audio size:', arrayBuffer.byteLength);
