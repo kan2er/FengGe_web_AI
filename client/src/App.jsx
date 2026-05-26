@@ -16,7 +16,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>峰哥聊天室</h1>
+        <h1>峰哥亡命天涯·AI</h1>
         <AudioToggle enabled={audioEnabled} onToggle={toggleAudio} />
       </header>
       <ChatWindow
