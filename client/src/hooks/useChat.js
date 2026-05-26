@@ -10,7 +10,6 @@ export function useChat(audioEnabled, playAudio) {
   const abortRef = useRef(null);
   const audioEnabledRef = useRef(audioEnabled);
   const messagesRef = useRef(messages);
-  const ttsStartedRef = useRef(false);
 
   audioEnabledRef.current = audioEnabled;
   messagesRef.current = messages;
@@ -41,7 +40,6 @@ export function useChat(audioEnabled, playAudio) {
     const newMessages = [...currentMessages, userMsg, assistantMsg];
     setMessages(newMessages);
     setIsStreaming(true);
-    ttsStartedRef.current = false;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -80,28 +78,8 @@ export function useChat(audioEnabled, playAudio) {
             const data = JSON.parse(dataStr);
             if (data.type === 'delta') {
               fullContent += data.content;
-              setMessages((prev) => {
-                const updated = [...prev];
-                const idx = updated.findIndex((m) => m.id === assistantMsgId);
-                if (idx === -1) return prev;
-                updated[idx] = { ...updated[idx], content: fullContent };
-                return updated;
-              });
-
-              // Start TTS early during streaming to reduce delay
-              if (!ttsStartedRef.current && fullContent.length >= 30) {
-                ttsStartedRef.current = true;
-                fetchTTS(fullContent, assistantMsgId);
-              }
             } else if (data.type === 'error') {
               fullContent = '兄弟，刚才信号不太好，你再说一遍？';
-              setMessages((prev) => {
-                const updated = [...prev];
-                const idx = updated.findIndex((m) => m.id === assistantMsgId);
-                if (idx === -1) return prev;
-                updated[idx] = { ...updated[idx], content: fullContent };
-                return updated;
-              });
             }
           } catch {
             // skip
@@ -109,16 +87,16 @@ export function useChat(audioEnabled, playAudio) {
         }
       }
 
-      const finalMessages = newMessages.map((m) =>
-        m.id === assistantMsgId ? { ...m, content: fullContent, timestamp: Date.now() } : m
-      );
-      setMessages(finalMessages);
-      setIsStreaming(false);
-
-      // If TTS wasn't started early (short text), start it now
-      if (!ttsStartedRef.current && fullContent.trim()) {
-        fetchTTS(fullContent, assistantMsgId);
+      // Wait for TTS, then show text + audio together
+      if (fullContent.trim()) {
+        await fetchTTS(fullContent, assistantMsgId, fullContent);
+      } else {
+        const finalMessages = newMessages.map((m) =>
+          m.id === assistantMsgId ? { ...m, content: fullContent, timestamp: Date.now() } : m
+        );
+        setMessages(finalMessages);
       }
+      setIsStreaming(false);
     } catch (err) {
       if (err.name === 'AbortError') {
         setIsStreaming(false);
@@ -135,7 +113,7 @@ export function useChat(audioEnabled, playAudio) {
     }
   }, [playAudio]);
 
-  const fetchTTS = async (text, targetMsgId) => {
+  const fetchTTS = async (text, targetMsgId, fullContent) => {
     try {
       const ttsRes = await fetch('/api/tts', {
         method: 'POST',
@@ -150,7 +128,7 @@ export function useChat(audioEnabled, playAudio) {
           const updated = [...prev];
           const idx = updated.findIndex((m) => m.id === targetMsgId);
           if (idx === -1) return prev;
-          updated[idx] = { ...updated[idx], audioUrl: null };
+          updated[idx] = { ...updated[idx], content: fullContent, audioUrl: null };
           return updated;
         });
         return;
@@ -163,7 +141,7 @@ export function useChat(audioEnabled, playAudio) {
         const updated = [...prev];
         const idx = updated.findIndex((m) => m.id === targetMsgId);
         if (idx === -1) return prev;
-        updated[idx] = { ...updated[idx], audioUrl };
+        updated[idx] = { ...updated[idx], content: fullContent, audioUrl };
         return updated;
       });
 
@@ -176,7 +154,7 @@ export function useChat(audioEnabled, playAudio) {
         const updated = [...prev];
         const idx = updated.findIndex((m) => m.id === targetMsgId);
         if (idx === -1) return prev;
-        updated[idx] = { ...updated[idx], audioUrl: null };
+        updated[idx] = { ...updated[idx], content: fullContent, audioUrl: null };
         return updated;
       });
     }
