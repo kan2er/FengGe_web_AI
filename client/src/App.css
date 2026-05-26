@@ -91,6 +91,11 @@ body {
   color: #8e8e8e;
 }
 
+.empty-emoji {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
 .empty-state p {
   font-size: 14px;
   line-height: 1.8;

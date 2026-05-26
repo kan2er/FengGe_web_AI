@@ -12,7 +12,8 @@ export default function ChatWindow({ messages, isStreaming, onPlay }) {
     <div className="chat-window">
       {messages.length === 0 && (
         <div className="empty-state">
-          <p>跟峰哥唠两句</p>
+          <div className="empty-emoji">⛰️</div>
+          <p>有啥困惑尽管问，峰哥给你捋一捋</p>
         </div>
       )}
       {messages.map((msg) => (
