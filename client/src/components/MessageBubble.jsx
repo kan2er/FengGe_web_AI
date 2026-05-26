@@ -4,6 +4,7 @@ export default function MessageBubble({ message, onPlay }) {
   return (
     <div className={`message-bubble ${isUser ? 'user' : 'fengge'}`}>
       {!isUser && <div className="avatar">峰</div>}
+      {isUser && <div className="avatar user-avatar">我</div>}
       <div className="bubble-content">
         <div className="bubble-text">{message.content}</div>
         {!isUser && message.content && message.audioUrl !== null && (
@@ -17,7 +18,6 @@ export default function MessageBubble({ message, onPlay }) {
           </button>
         )}
       </div>
-      {isUser && <div className="avatar user-avatar">我</div>}
     </div>
   );
 }
