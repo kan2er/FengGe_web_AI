@@ -32,7 +32,7 @@ export default function ttsRoute(req, res) {
   }
   console.log('[TTS] Requesting, text length:', text.length, 'voice:', VOICE_ID);
 
-  const body = JSON.stringify({ text, voice_id: VOICE_ID });
+  const body = JSON.stringify({ text, reference_id: VOICE_ID });
 
   const options = {
     hostname: 'api.fish.audio',
