@@ -3,8 +3,8 @@ export default function MessageBubble({ message, onPlay }) {
 
   return (
     <div className={`message-bubble ${isUser ? 'user' : 'fengge'}`}>
-      {!isUser && <div className="avatar">峰</div>}
-      {isUser && <div className="avatar user-avatar">我</div>}
+      {!isUser && <div className="avatar fengge-avatar">🎙️</div>}
+      {isUser && <div className="avatar user-avatar">👤</div>}
       <div className="bubble-content">
         <div className="bubble-text">{message.content}</div>
         {!isUser && message.content && message.audioUrl !== null && (
@@ -14,7 +14,7 @@ export default function MessageBubble({ message, onPlay }) {
             disabled={!message.audioUrl}
             title={message.audioUrl ? '播放语音' : '语音生成中...'}
           >
-            {message.audioUrl ? '🔊' : '⏳'}
+            {message.audioUrl ? '▶' : '◌'}
           </button>
         )}
       </div>

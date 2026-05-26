@@ -12,9 +12,7 @@ export default function ChatWindow({ messages, isStreaming, onPlay }) {
     <div className="chat-window">
       {messages.length === 0 && (
         <div className="empty-state">
-          <div className="empty-avatar">峰</div>
-          <p>家人们，我是峰哥（虚构版），亡命天涯。</p>
-          <p>有啥想唠的，直接开麦。</p>
+          <p>跟峰哥唠两句</p>
         </div>
       )}
       {messages.map((msg) => (

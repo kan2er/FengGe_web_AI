@@ -26,7 +26,7 @@ export default function ChatInput({ onSend, disabled }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="跟峰哥唠两句..."
+        placeholder="说点什么..."
         disabled={disabled}
         rows={2}
       />

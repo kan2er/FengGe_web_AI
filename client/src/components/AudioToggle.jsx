@@ -1,7 +1,7 @@
 export default function AudioToggle({ enabled, onToggle }) {
   return (
     <div className="audio-toggle">
-      <span>🔊 语音播报</span>
+      <span>语音</span>
       <button
         className={`toggle-btn ${enabled ? 'on' : 'off'}`}
         onClick={onToggle}
