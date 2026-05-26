@@ -10,6 +10,7 @@ export function useChat(audioEnabled, playAudio) {
   const abortRef = useRef(null);
   const audioEnabledRef = useRef(audioEnabled);
   const messagesRef = useRef(messages);
+  const ttsStartedRef = useRef(false);
 
   audioEnabledRef.current = audioEnabled;
   messagesRef.current = messages;
@@ -40,6 +41,7 @@ export function useChat(audioEnabled, playAudio) {
     const newMessages = [...currentMessages, userMsg, assistantMsg];
     setMessages(newMessages);
     setIsStreaming(true);
+    ttsStartedRef.current = false;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -85,6 +87,12 @@ export function useChat(audioEnabled, playAudio) {
                 updated[idx] = { ...updated[idx], content: fullContent };
                 return updated;
               });
+
+              // Start TTS early during streaming to reduce delay
+              if (!ttsStartedRef.current && fullContent.length >= 30) {
+                ttsStartedRef.current = true;
+                fetchTTS(fullContent, assistantMsgId);
+              }
             } else if (data.type === 'error') {
               fullContent = '兄弟，刚才信号不太好，你再说一遍？';
               setMessages((prev) => {
@@ -107,8 +115,8 @@ export function useChat(audioEnabled, playAudio) {
       setMessages(finalMessages);
       setIsStreaming(false);
 
-      // TTS runs in background, doesn't block the UI
-      if (fullContent.trim()) {
+      // If TTS wasn't started early (short text), start it now
+      if (!ttsStartedRef.current && fullContent.trim()) {
         fetchTTS(fullContent, assistantMsgId);
       }
     } catch (err) {
