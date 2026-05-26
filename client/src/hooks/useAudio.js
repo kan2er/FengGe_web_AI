@@ -25,18 +25,15 @@ export function useAudio() {
     setIsPlaying(true);
     audio.play().catch(() => {
       setIsPlaying(false);
-      URL.revokeObjectURL(url);
-    });
+          });
     audio.onended = () => {
       setIsPlaying(false);
       audioRef.current = null;
-      URL.revokeObjectURL(url);
-    };
+          };
     audio.onerror = () => {
       setIsPlaying(false);
       audioRef.current = null;
-      URL.revokeObjectURL(url);
-    };
+          };
   }, [stop]);
 
   const toggleAudio = useCallback(() => {
