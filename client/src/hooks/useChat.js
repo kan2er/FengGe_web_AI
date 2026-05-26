@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { loadMessages, saveMessages, clearMessages } from '../utils/storage';
 
 function generateId() {
@@ -9,6 +9,17 @@ export function useChat(audioEnabled, playAudio) {
   const [messages, setMessages] = useState(loadMessages);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef(null);
+  const audioEnabledRef = useRef(audioEnabled);
+  const messagesRef = useRef(messages);
+
+  audioEnabledRef.current = audioEnabled;
+  messagesRef.current = messages;
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const persist = useCallback((msgs) => {
     setMessages(msgs);
@@ -23,14 +34,16 @@ export function useChat(audioEnabled, playAudio) {
       timestamp: Date.now(),
     };
 
+    const assistantMsgId = generateId();
     const assistantMsg = {
-      id: generateId(),
+      id: assistantMsgId,
       role: 'assistant',
       content: '',
       timestamp: Date.now(),
     };
 
-    const newMessages = [...messages, userMsg, assistantMsg];
+    const currentMessages = messagesRef.current;
+    const newMessages = [...currentMessages, userMsg, assistantMsg];
     persist(newMessages);
     setIsStreaming(true);
 
@@ -73,20 +86,18 @@ export function useChat(audioEnabled, playAudio) {
               fullContent += data.content;
               setMessages((prev) => {
                 const updated = [...prev];
-                updated[updated.length - 1] = {
-                  ...updated[updated.length - 1],
-                  content: fullContent,
-                };
+                const idx = updated.findIndex((m) => m.id === assistantMsgId);
+                if (idx === -1) return prev;
+                updated[idx] = { ...updated[idx], content: fullContent };
                 return updated;
               });
             } else if (data.type === 'error') {
               fullContent = '兄弟，刚才信号不太好，你再说一遍？';
               setMessages((prev) => {
                 const updated = [...prev];
-                updated[updated.length - 1] = {
-                  ...updated[updated.length - 1],
-                  content: fullContent,
-                };
+                const idx = updated.findIndex((m) => m.id === assistantMsgId);
+                if (idx === -1) return prev;
+                updated[idx] = { ...updated[idx], content: fullContent };
                 return updated;
               });
             }
@@ -96,15 +107,11 @@ export function useChat(audioEnabled, playAudio) {
         }
       }
 
-      // Stream done, persist final state
-      const finalMessages = [
-        ...newMessages.slice(0, -1),
-        { ...assistantMsg, content: fullContent, timestamp: Date.now() },
-      ];
+      const finalMessages = newMessages.map((m) =>
+        m.id === assistantMsgId ? { ...m, content: fullContent, timestamp: Date.now() } : m
+      );
       persist(finalMessages);
-      setIsStreaming(false);
 
-      // Fetch TTS audio
       if (fullContent.trim()) {
         try {
           const ttsRes = await fetch('/api/tts', {
@@ -119,34 +126,37 @@ export function useChat(audioEnabled, playAudio) {
 
             setMessages((prev) => {
               const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...updated[updated.length - 1],
-                audioUrl,
-              };
+              const idx = updated.findIndex((m) => m.id === assistantMsgId);
+              if (idx === -1) return prev;
+              updated[idx] = { ...updated[idx], audioUrl };
               return updated;
             });
 
-            if (audioEnabled) {
+            if (audioEnabledRef.current) {
               playAudio(audioUrl);
             }
           }
         } catch {
-          // TTS failed silently, chat still works
+          // TTS failed silently
         }
       }
+
+      setIsStreaming(false);
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (err.name === 'AbortError') {
+        setIsStreaming(false);
+        return;
+      }
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          content: '兄弟，网不太好，你等会儿再试试。',
-        };
+        const idx = updated.findIndex((m) => m.id === assistantMsgId);
+        if (idx === -1) return prev;
+        updated[idx] = { ...updated[idx], content: '兄弟，网不太好，你等会儿再试试。' };
         return updated;
       });
       setIsStreaming(false);
     }
-  }, [messages, persist, audioEnabled, playAudio]);
+  }, [persist, playAudio]);
 
   const clear = useCallback(() => {
     clearMessages();

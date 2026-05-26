@@ -44,6 +44,12 @@ export default function chatRoute(req, res) {
         return;
       }
 
+      if (!response.body) {
+        res.write(`data: ${JSON.stringify({ type: 'error', message: 'Empty response body' })}\n\n`);
+        res.end();
+        return;
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';

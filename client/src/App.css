@@ -8,6 +8,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #1a1a2e;
   color: #e0e0e0;
+  color-scheme: dark;
+  min-width: 320px;
 }
 
 .app {
@@ -61,6 +63,11 @@ body {
 .toggle-btn.off {
   background: #333;
   color: #888;
+}
+
+.toggle-btn:focus-visible {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
 }
 
 /* Chat Window */
@@ -182,6 +189,11 @@ body {
   cursor: default;
 }
 
+.play-btn:focus-visible {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
+}
+
 /* Typing Indicator */
 .typing-indicator {
   font-size: 12px;
@@ -241,6 +253,11 @@ body {
 .chat-input button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.chat-input button:focus-visible {
+  outline: 2px solid #e94560;
+  outline-offset: 2px;
 }
 
 /* Scrollbar */
