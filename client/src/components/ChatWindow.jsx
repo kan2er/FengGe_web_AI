@@ -20,7 +20,7 @@ export default function ChatWindow({ messages, isStreaming, onPlay }) {
         <MessageBubble key={msg.id} message={msg} onPlay={onPlay} />
       ))}
       {isStreaming && (
-        <div className="typing-indicator">峰哥正在打字...</div>
+        <div className="typing-indicator">峰哥正在输入...</div>
       )}
       <div ref={bottomRef} />
     </div>
