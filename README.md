@@ -41,30 +41,19 @@ cd ..
 
 ## 配置
 
-编辑 `server/.env`，填入你的 API Key：
-
-```env
-# DeepSeek API
-DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_API_KEY=sk-your-deepseek-key
-
-# Fish Audio API
-FISH_AUDIO_API_KEY=your-fish-audio-key
-FISH_AUDIO_VOICE_ID=your-voice-model-id
-
-# 服务端口
-PORT=3001
-
-# 代理（国内访问 Fish Audio 需要）
-HTTPS_PROXY=http://127.0.0.1:7890
+```bash
+# 复制配置模板
+cp server/.env.example server/.env
 ```
 
-**配置说明：**
+编辑 `server/.env`，填入你的 API Key：
 
-- `DEEPSEEK_API_KEY`：在 DeepSeek 开放平台注册后获取
-- `FISH_AUDIO_API_KEY`：在 Fish Audio 控制台生成
-- `FISH_AUDIO_VOICE_ID`：你在 Fish Audio 训练的峰哥音色模型 ID（注意是 reference_id）
-- `HTTPS_PROXY`：如果你在国内，需要配置代理才能访问 Fish Audio。Clash 默认端口一般为 7890，填写你自己的代理端口即可。如果不需要代理，留空或删除这一行
+| 配置项 | 说明 |
+|---|---|
+| `DEEPSEEK_API_KEY` | 在 DeepSeek 开放平台注册后获取 |
+| `FISH_AUDIO_API_KEY` | 在 Fish Audio 控制台生成 |
+| `FISH_AUDIO_VOICE_ID` | 在 Fish Audio 训练的峰哥音色模型 ID |
+| `HTTPS_PROXY` | 国内访问 Fish Audio 需要代理，填写代理端口；不需要则删除 |
 
 ## 启动
 
