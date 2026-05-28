@@ -6,7 +6,7 @@
 
 | 层 | 技术 |
 |---|---|
-| 前端 | React 18 + Vite |
+| 前端 | React 19 + Vite |
 | 后端 | Node.js + Express |
 | AI 文本 | DeepSeek API（流式输出） |
 | AI 语音 | Fish Audio TTS（自定义音色） |
@@ -127,3 +127,37 @@ NODE_ENV=production node server/index.js
 **更换音色**：修改 `server/.env` 中的 `FISH_AUDIO_VOICE_ID` 为你的模型 ID。
 
 **更换大模型**：修改 `server/routes/chat.js` 中的 `model` 参数（默认 `deepseek-chat`），以及 `server/.env` 中的 `DEEPSEEK_BASE_URL`。
+
+## 桌面应用打包（Electron）
+
+适合分享给非技术人员，无需安装 Node.js，双击即用。
+
+### 打包
+
+```bash
+npm run electron:zip
+```
+
+产出 `release/FengGeChatAI.zip`。
+
+### 分发给用户
+
+1. 将 `FengGeChatAI.zip` 发给对方，解压到任意目录
+2. 对方编辑解压目录中的 `config.json.example`，填入自己的 API Key
+3. 将 `config.json.example` 重命名为 `config.json`
+4. 双击 `FengGeChatAI.exe` 即可使用
+
+`config.json` 格式：
+
+```json
+{
+  "DEEPSEEK_BASE_URL": "https://api.deepseek.com",
+  "DEEPSEEK_API_KEY": "sk-你的key",
+  "FISH_AUDIO_API_KEY": "",
+  "FISH_AUDIO_VOICE_ID": "",
+  "HTTPS_PROXY": "",
+  "PORT": 3001
+}
+```
+
+必填：`DEEPSEEK_API_KEY`。语音功能（Fish Audio）可选，不填则纯文字聊天。

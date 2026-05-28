@@ -1,0 +1,8 @@
+{
+  "DEEPSEEK_BASE_URL": "https://api.deepseek.com",
+  "DEEPSEEK_API_KEY": "sk-your-deepseek-key-goes-here",
+  "FISH_AUDIO_API_KEY": "",
+  "FISH_AUDIO_VOICE_ID": "",
+  "HTTPS_PROXY": "",
+  "PORT": 3001
+}

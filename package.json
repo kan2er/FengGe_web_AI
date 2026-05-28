@@ -1,13 +1,50 @@
 {
   "name": "fengge-chat",
+  "version": "1.0.0",
+  "description": "FengGe WangMingTianYa AI Chatbot Desktop App",
+  "author": "FengGe Chat",
   "private": true,
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "node server/index.js",
     "dev:client": "cd client && npm run dev",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "electron:dev": "npm run build && electron .",
+    "electron:dist": "npm run build && cd server && npm install --production && cd .. && electron-builder --win dir && node -e \"require('fs').cpSync('config.json.example','release/win-unpacked/config.json.example')\"",
+    "electron:zip": "npm run electron:dist && powershell -Command \"Compress-Archive -Path release\\win-unpacked\\* -DestinationPath release\\FengGeChatAI.zip -Force\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "https-proxy-agent": "^7.0.0"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "electron": "^35.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.fengge.chat",
+    "productName": "FengGeChatAI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "!server/.env",
+      "!config.json",
+      "client/dist/**/*",
+      "package.json",
+      "config.json.example"
+    ],
+    "win": {
+      "target": "dir",
+      "sign": null,
+      "signAndEditExecutable": false
+    },
+    "forceCodeSigning": false
   }
 }
