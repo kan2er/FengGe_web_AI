@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install client deps
+        run: cd client && npm ci
+
+      - name: Build client
+        run: cd client && npm run build
+
+      - name: Install server deps
+        run: cd server && npm ci --production
+
+      - name: Package Electron app
+        run: npx electron-builder --win dir
+
+      - name: Copy config template to output
+        run: copy config.json.example release\win-unpacked\config.json.example
+
+      - name: Create zip
+        run: Compress-Archive -Path release\win-unpacked\* -DestinationPath release\FengGeChatAI.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release\FengGeChatAI.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
